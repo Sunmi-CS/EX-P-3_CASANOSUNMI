@@ -5,8 +5,9 @@ import CountryCard from "../components/CountryCard";
 function Countries() {
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1); // 📄 Página actual
-  const limit = 6; // 🧮 Cantidad de países por página
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(""); //   Estado para el buscador
+  const limit = 6;
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -23,16 +24,37 @@ function Countries() {
     fetchCountries();
   }, []);
 
-  // 📊 Calcular el total de páginas
-  const totalPages = Math.ceil(countries.length / limit);
+  // Filtrar por nombre del país
+  const filteredCountries = countries.filter((country) =>
+    country.name.common.toLowerCase().includes(search.toLowerCase())
+  );
 
-  // ✂️ Cortar los países según la página actual
+  // Calcular total de páginas (solo de los filtrados)
+  const totalPages = Math.ceil(filteredCountries.length / limit);
+
+  // Cortar los países filtrados según la página actual
   const startIndex = (page - 1) * limit;
-  const currentCountries = countries.slice(startIndex, startIndex + limit);
+  const currentCountries = filteredCountries.slice(startIndex, startIndex + limit);
 
   return (
     <section className="container py-5">
       <h2 className="text-center mb-4">🌍 Lista de Países</h2>
+
+      {/* Buscador */}
+      <div className="row justify-content-center mb-4">
+        <div className="col-md-6">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Buscar país..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1); //  Volver a la página 1 al buscar
+            }}
+          />
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-center">
@@ -42,14 +64,14 @@ function Countries() {
         </div>
       ) : (
         <>
-          {/* 🗺️ Tarjetas de países */}
+          {/* Tarjetas */}
           <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
             {currentCountries.map((country) => (
               <CountryCard key={country.name.common} country={country} />
             ))}
           </div>
 
-          {/* 🧭 Paginación Bootstrap */}
+          {/* Paginación */}
           <nav aria-label="Page navigation" className="mt-4">
             <ul className="pagination justify-content-center">
               <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
@@ -67,9 +89,7 @@ function Countries() {
               </li>
 
               <li
-                className={`page-item ${
-                  page === totalPages ? "disabled" : ""
-                }`}
+                className={`page-item ${page === totalPages ? "disabled" : ""}`}
               >
                 <button
                   className="page-link"
